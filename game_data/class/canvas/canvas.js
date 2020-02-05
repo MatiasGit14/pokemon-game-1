@@ -1,68 +1,87 @@
 "use strict";
-var Draw = /** @class */ (function () {
-    function Draw(target) {
-        var _this = this;
-        this.registerADD = function (_a) {
-            var _b = _a.register, register = _b === void 0 ? 'A' : _b, _c = _a.type, type = _c === void 0 ? '' : _c, _d = _a.ref, ref = _d === void 0 ? '' : _d;
+/**
+ *
+ *
+ * @class Draw
+ */
+class Draw {
+    constructor(target) {
+        this.registerSYNC = () => {
+            const baseName = "_i8smdi01ede";
+            let isStorage = !!localStorage.getItem(baseName);
+            if (!isStorage) {
+                let regKeys = Object.keys(this.REGISTER);
+                let tmp__ = {};
+                regKeys.forEach(a => tmp__[a] = this.REGISTER[a]);
+                tmp__ = JSON.stringify(tmp__);
+                localStorage.setItem(baseName, '{ provider : ' + tmp__ + ' }');
+            }
+            return this;
+        };
+        this.registerADD = ({ register = 'A', type = '', ref = '' }) => {
             switch (type) {
                 case 'image':
-                    var _img_1 = new Image();
-                    _img_1.src = ref;
-                    var _canvas = document.createElement("canvas");
-                    _canvas.width = _img_1.width;
-                    _canvas.height = _img_1.height;
-                    var _ctx = _canvas.getContext("2d");
-                    var dataURL = _canvas.toDataURL("image/png");
-                    _img_1.addEventListener('load', function () {
-                        _ctx.drawImage(_img_1, 0, 0);
-                    });
-                    _this.REGISTER[register] = dataURL;
+                    (async () => {
+                        let _img = new Image();
+                        _img.src = ref;
+                        var _canvas = document.createElement("canvas");
+                        _canvas.width = _img.width;
+                        _canvas.height = _img.height;
+                        var _ctx = _canvas.getContext("2d");
+                        var dataURL;
+                        await _img.addEventListener('load', () => _ctx.drawImage(_img, 0, 0));
+                        dataURL = _canvas.toDataURL("image/png");
+                        this.REGISTER[register] = dataURL;
+                    })();
+                    break;
+                case 'val':
+                    this.REGISTER[register] = ref;
                     break;
             }
-            return _this;
+            return this;
         };
-        this.registerMOV = function (_old, _new) {
-            _this.REGISTER[_new] = _this.REGISTER[_old];
-            _this.REGISTER[_old] = null;
+        this.registerMOV = (_old, _new) => {
+            this.REGISTER[_new] = this.REGISTER[_old];
+            this.REGISTER[_old] = null;
+            return this;
         };
-        this.registerDELETE = function (_a) {
-            var _b = _a.register, register = _b === void 0 ? 'A' : _b;
-            return _this;
+        this.registerDELETE = ({ register = 'A' }) => {
+            this.REGISTER[register] = null;
+            return this;
         };
-        this.registerUSE = function (register) {
-            return _this.REGISTER[register];
+        this.registerUSE = (register) => this.REGISTER[register];
+        this.registerCHECK = () => {
+            console.table(this.REGISTER);
+            return this;
         };
-        this.registerCHECK = function () {
-            console.table(_this.REGISTER);
-        };
-        this.add = function (type, args) {
-            var bufferId;
-            bufferId = Object.keys(_this.buffer).length;
-            _this.buffer[_this.bufferSize] = {
+        this.add = (type, args) => {
+            let bufferId;
+            bufferId = Object.keys(this.buffer).length;
+            this.buffer[this.bufferSize] = {
+                // ref : ref, 
                 id: bufferId,
                 type: type,
                 arguments: args
             };
-            _this.bufferSize++;
-            return _this;
+            this.bufferSize++;
+            return this;
         };
-        this.draw = function (inComming) {
-            if (inComming === void 0) { inComming = {}; }
-            var id = inComming['id'];
-            var type = inComming['type'];
-            var args = inComming['arguments'];
-            _this.ctx.fillStyle = "#000000";
+        this.draw = (inComming = {}) => {
+            let id = inComming['id'];
+            let type = inComming['type'];
+            let args = inComming['arguments'];
+            this.ctx.fillStyle = "#000000";
             switch (type) {
                 case 'pixel':
-                    _this.ctx.fillStyle = args[2]['color'] || args[2]['color'];
-                    _this.ctx.fillRect(args[0], args[1], 5, 5);
+                    //this.ctx.fillStyle = args[ 2 ]['color'] || args[ 2 ]['color'];
+                    this.ctx.fillRect(args[0], args[1], 1, 1);
                     break;
                 case 'method':
                     //Array of pixels
                     break;
                 case 'rect':
-                    _this.ctx.fillStyle = args[4]['color'];
-                    _this.ctx.fillRect(args[0], args[1], args[2], args[3]);
+                    this.ctx.fillStyle = args[4]['color'];
+                    this.ctx.fillRect(args[0], args[1], args[2], args[3]);
                     break;
                 case 'text':
                     //A simple text
@@ -70,9 +89,9 @@ var Draw = /** @class */ (function () {
                 case 'image':
                     var image = new Image();
                     image.src = args[4]['src'];
-                    image.addEventListener('load', function () {
+                    image.addEventListener('load', () => {
                         //image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight
-                        _this.ctx.drawImage(image, args[0], args[1]);
+                        this.ctx.drawImage(image, args[0], args[1]);
                     });
                     break;
                 default:
@@ -81,7 +100,16 @@ var Draw = /** @class */ (function () {
                     break;
             }
         };
-        this.refresh = function () { return _this.ctx.clearRect(0, 0, 1200, 720); };
+        this.refresh = () => this.ctx.clearRect(0, 0, 1200, 720);
+        this.build = () => {
+            this.refresh();
+            let bufferKeys = Object.keys(this.buffer);
+            bufferKeys.forEach(pixel => this.draw(this.buffer[pixel]));
+            this.bufferSize = 0;
+            console.table(this.buffer);
+            window.requestAnimationFrame(() => this.build());
+            return this;
+        };
         this.buffer = {};
         this.bufferSize = 0;
         this.targetDraw = target;
@@ -98,16 +126,5 @@ var Draw = /** @class */ (function () {
         };
         Object.preventExtensions(this.REGISTER);
     }
-    Draw.prototype.getBase64Image = function (img) {
-    };
-    Draw.prototype.build = function () {
-        var _this = this;
-        this.refresh();
-        var bufferKeys = Object.keys(this.buffer);
-        bufferKeys.forEach(function (pixel) { return _this.draw(_this.buffer[pixel]); });
-        this.buffer = {};
-        this.bufferSize = 0;
-    };
-    return Draw;
-}());
+}
 export default Draw;
