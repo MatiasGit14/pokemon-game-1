@@ -1,4 +1,9 @@
 "use strict"
+/**
+ *
+ *
+ * @class Draw
+ */
 class Draw {
 
     buffer : any;
@@ -8,7 +13,7 @@ class Draw {
     REGISTER : any;
 
     constructor( target : any ) {
-        this.buffer = {};
+        this.buffer = { };
         this.bufferSize = 0;
         this.targetDraw = target;
         this.ctx = this.targetDraw.getContext( "2d" );
@@ -25,48 +30,66 @@ class Draw {
         Object.preventExtensions( this.REGISTER );
     }
 
-    getBase64Image( img :any ) {
-        
+    registerSYNC = () => {
+        const baseName = "_i8smdi01ede";
+        let isStorage = !!localStorage.getItem( baseName );
+        if( !isStorage ) {
+            let regKeys = Object.keys( this.REGISTER );
+            let tmp__ : any = { };
+            regKeys.forEach( a =>  tmp__[ a ] = this.REGISTER[ a ] );
+            tmp__ = JSON.stringify( tmp__ );
+            localStorage.setItem( baseName, '{ provider : '+ tmp__ +' }' );
+        }
+        return this;
     }
 
     registerADD = ( { register = 'A', type = '', ref = '' }  ) => {
         switch( type ){
             case 'image':
-                let _img = new Image();
-                _img.src = ref;
-                var _canvas = document.createElement("canvas");
-                _canvas.width = _img.width;
-                _canvas.height = _img.height;
-                var _ctx : any = _canvas.getContext("2d");
-                let dataURL = _canvas.toDataURL("image/png");
-                _img.addEventListener( 'load', () => {
-                    _ctx.drawImage(_img, 0, 0);
-                } );    
-                this.REGISTER[ register ] = dataURL;
+                ( async ( ) => {
+                    let _img = new Image( );
+                    _img.src = ref;
+                    var _canvas = document.createElement("canvas");
+                    _canvas.width = _img.width;
+                    _canvas.height = _img.height;
+                    var _ctx : any = _canvas.getContext("2d");
+                    var dataURL;
+                    await _img.addEventListener( 'load', ( ) =>  _ctx.drawImage(_img, 0, 0) );    
+                    dataURL = _canvas.toDataURL( "image/png" );
+                    this.REGISTER[ register ] = dataURL;
+                })()
+            break;
+
+            case 'val':
+                this.REGISTER[ register ] = ref;
             break;
         }
         return this;
     }
 
-    registerMOV = ( _old : any, _new : any ) : void => {
+    registerMOV = ( _old : any, _new : any ) => {
         this.REGISTER[ _new ] = this.REGISTER[ _old ];
         this.REGISTER[ _old ] = null;
+        return this;
     }
 
     registerDELETE = ( { register = 'A' } ) => {
+        this.REGISTER[ register ] = null;
         return this;
     }
-    registerUSE = ( register : any ) => {
-        return this.REGISTER[ register ];
-    }
+
+    registerUSE = ( register : any ) =>  this.REGISTER[ register ];
+
     registerCHECK = () => {
         console.table( this.REGISTER );
+        return this;
     }
 
     add = ( type : string, args : Array< any > ) : any => {
         let bufferId : number;
         bufferId = Object.keys( this.buffer ).length;
         this.buffer[ this.bufferSize ] = {
+           // ref : ref, 
             id : bufferId,
             type : type,
             arguments : args
@@ -82,8 +105,8 @@ class Draw {
         this.ctx.fillStyle = "#000000";
         switch( type ) {
             case 'pixel':
-                this.ctx.fillStyle = args[ 2 ]['color'] || args[ 2 ]['color'];
-                this.ctx.fillRect( args[ 0 ], args[ 1 ], 5, 5 );
+                //this.ctx.fillStyle = args[ 2 ]['color'] || args[ 2 ]['color'];
+                this.ctx.fillRect( args[ 0 ], args[ 1 ], 1, 1 );
             break;
 
             case 'method':
@@ -115,15 +138,18 @@ class Draw {
         }
     }
 
-    refresh = () => this.ctx.clearRect( 0,0,1200,720 ) ;
+    refresh = () => this.ctx.clearRect( 0, 0, 1200, 720 ) ;
 
-    build ( ) {
+    build = ( ) => {
         this.refresh();
         let bufferKeys = Object.keys( this.buffer );
         bufferKeys.forEach( pixel =>  this.draw( this.buffer[ pixel ] ) );
-        this.buffer = {};
         this.bufferSize = 0;
+        console.table( this.buffer );
+        window.requestAnimationFrame( () => this.build( ) );
+        return this;
     }
+
 
 }
 

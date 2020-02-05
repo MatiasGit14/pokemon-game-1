@@ -1,0 +1,28 @@
+{
+  "bundle": {
+    "commonSourceDirectory": "./",
+    "sourceFiles": [
+      "./game_data/class/canvas/canvas.ts",
+      "./game_data/game_data.ts"
+    ],
+    "js": {
+      "sections": [
+        {
+          "pos": 0,
+          "end": 7008,
+          "kind": "text"
+        }
+      ]
+    },
+    "dts": {
+      "sections": [
+        {
+          "pos": 0,
+          "end": 877,
+          "kind": "text"
+        }
+      ]
+    }
+  },
+  "version": "3.7.4"
+}
