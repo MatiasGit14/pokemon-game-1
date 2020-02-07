@@ -1,6 +1,6 @@
-"use strict";
+'use strict';
 class GameCore {
-    constructor() {
-        this.scene = {};
-    }
+  constructor() {
+    this.scene = {};
+  }
 }
